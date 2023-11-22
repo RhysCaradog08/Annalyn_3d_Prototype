@@ -71,6 +71,6 @@ public class Player_Controller : MonoBehaviour
 
         facingRight = !facingRight;
 
-        //pickCtrl.SetPickPosition();
+        pickCtrl.SetPickPosition();
     }
 }
