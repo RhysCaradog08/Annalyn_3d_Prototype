@@ -138,8 +138,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 0.8, z: 1}
-  m_Center: {x: 0, y: 0.55, z: 0}
+  m_Size: {x: 2, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.65, z: 0}
 --- !u!54 &9209825417778579627
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -181,6 +181,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   holdPosR: {fileID: 0}
   holdPosL: {fileID: 0}
+  buttonHeld: 0
+  isSwingingPick: 0
   throwDistance: 10
   throwForce: 25
+  spinSpeed: 0
+  canThrowPick: 0
   hasThrownPick: 0
+  recallDist: 0
+  isRecallingPick: 0

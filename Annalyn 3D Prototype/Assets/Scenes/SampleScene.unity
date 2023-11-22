@@ -745,6 +745,10 @@ PrefabInstance:
       propertyPath: holdPosR
       value: 
       objectReference: {fileID: 726070482}
+    - target: {fileID: 9209825417778579626, guid: 52ee398f8bd95ed4e99315d7fdcea000, type: 3}
+      propertyPath: spinSpeed
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9209825417778579668, guid: 52ee398f8bd95ed4e99315d7fdcea000, type: 3}
       propertyPath: m_Name
       value: Pickaxe

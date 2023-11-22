@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class Pickaxe_Controller : MonoBehaviour
 {
@@ -20,10 +21,13 @@ public class Pickaxe_Controller : MonoBehaviour
     public bool isSwingingPick;
 
     [Header("Throw")]
-    [SerializeField] float throwDistance, throwForce;
+    [SerializeField] float throwDistance, throwForce, spinSpeed;
     Vector3 throwDirection;
-    float lerpTime = 1f;
     [SerializeField] bool canThrowPick, hasThrownPick;
+
+    [Header("Recall")]
+    [SerializeField] float recallDist;
+    [SerializeField] bool isRecallingPick;
 
     // Start is called before the first frame update
     void Start()
@@ -41,30 +45,17 @@ public class Pickaxe_Controller : MonoBehaviour
         //Throw
         canThrowPick = false;
         hasThrownPick = false;
+
+        //Recall
+        isRecallingPick = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0)) //&& cc.isGrounded)//Button is pressed down. Need to check to see if it is "held".
-        {
-                buttonHeldTime = Time.timeSinceLevelLoad;
-                buttonHeld = false;
-        }
-        else if (Input.GetKeyUp(KeyCode.Mouse0)) // && cc.isGrounded)
-        {
-            buttonHeld = false;
-        }
+        Debug.DrawLine(transform.position, transform.position + pc.transform.right * 10, Color.red);
 
-        if (Input.GetKey(KeyCode.Mouse0))
-        {
-            if (Time.timeSinceLevelLoad - buttonHeldTime > minButtonHold)//Button is considered "held" if it is actually held down.
-            {
-                buttonHeld = true;
-                canThrowPick = true;
-            }
-        }
-
+        ButtonHeldCheck();
 
         if (!hasThrownPick && !isSwingingPick)
         {
@@ -80,10 +71,62 @@ public class Pickaxe_Controller : MonoBehaviour
                 ThrowPickaxe();
             }
         } 
-        
+
         if (hasThrownPick)
         {
+            if(!rb.isKinematic)
+            {
+                transform.Rotate(transform.forward * spinSpeed); 
+            }
+        }
+        
+        if (hasThrownPick && Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            if (rb.isKinematic && !isRecallingPick)
+            {
+                isRecallingPick = true;
+            }
+        }
+
+        if (isRecallingPick)
+        {
             RecallPickaxe();
+
+            recallDist = Vector3.Distance(transform.position, pc.transform.position);
+
+            if (recallDist < 2)
+            {
+                rb.velocity = Vector3.zero;
+                rb.isKinematic = true;
+
+                isRecallingPick = false;
+                hasThrownPick = false;
+
+                SetPickPosition();
+            }
+
+        }
+    }
+
+    void ButtonHeldCheck()
+    {
+        if (Input.GetKeyDown(KeyCode.Mouse0)) //&& cc.isGrounded)//Button is pressed down. Need to check to see if it is "held".
+        {
+            buttonHeldTime = Time.timeSinceLevelLoad;
+            buttonHeld = false;
+        }
+        else if (Input.GetKeyUp(KeyCode.Mouse0)) // && cc.isGrounded)
+        {
+            buttonHeld = false;
+        }
+
+        if (Input.GetKey(KeyCode.Mouse0))
+        {
+            if (Time.timeSinceLevelLoad - buttonHeldTime > minButtonHold)//Button is considered "held" if it is actually held down.
+            {
+                buttonHeld = true;
+                canThrowPick = true;
+            }
         }
     }
 
@@ -99,6 +142,8 @@ public class Pickaxe_Controller : MonoBehaviour
             transform.position = holdPosL.position;
             transform.parent = holdPosL;
         }
+
+        transform.rotation = Quaternion.Euler(0,0,0);
     }
 
     void SwingPickaxe()
@@ -123,18 +168,31 @@ public class Pickaxe_Controller : MonoBehaviour
         
         if (pc.facingRight)
         {
+            spinSpeed = -7;
             rb.AddForce(pc.transform.right * throwForce, ForceMode.Impulse);
         }
         else if (!pc.facingRight)
         {
+            spinSpeed = 7;
             rb.AddForce(-pc.transform.right * throwForce, ForceMode.Impulse);
         }
+
         hasThrownPick = true;
+        canThrowPick = false;
     }
 
     void RecallPickaxe()
     {
         Debug.Log("Recall Pickaxe");
+
+        if (rb.isKinematic)
+        {
+            rb.isKinematic = false;
+        }
+
+        Vector3 recallDir = (pc.transform.position - transform.position).normalized * throwForce;
+
+        rb.velocity = recallDir;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -144,6 +202,20 @@ public class Pickaxe_Controller : MonoBehaviour
             if (!other.gameObject.CompareTag("Player"))
             {
                 rb.isKinematic = true;
+
+                Vector3 dir = (other.transform.position - transform.position).normalized;
+                float direction = Vector3.Dot(dir, pc.transform.right);
+
+                if (direction < 0)
+                {
+                    Debug.Log("Object is Left");
+                    transform.rotation = Quaternion.Euler(0, 0, 70);
+                }
+                else
+                {
+                    Debug.Log("Object is Right");
+                    transform.rotation = Quaternion.Euler(0, 0, -70);
+                }
             }
         }
     }
