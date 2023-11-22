@@ -218,5 +218,14 @@ public class Pickaxe_Controller : MonoBehaviour
                 }
             }
         }
+
+        if (isSwingingPick)
+        {
+            if (other.GetComponent<Destructible_Health>() != null)
+            {
+                Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
+                dest_Health.health --;
+            }
+        }
     }
 }
