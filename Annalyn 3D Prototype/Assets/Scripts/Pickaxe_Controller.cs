@@ -23,7 +23,8 @@ public class Pickaxe_Controller : MonoBehaviour
     [Header("Throw")]
     [SerializeField] float throwDistance, throwForce, spinSpeed;
     Vector3 throwDirection;
-    [SerializeField] bool canThrowPick, hasThrownPick;
+    [SerializeField] bool canThrowPick;
+    public bool hasThrownPick;
 
     [Header("Recall")]
     [SerializeField] float recallDist;
@@ -53,7 +54,7 @@ public class Pickaxe_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.DrawLine(transform.position, transform.position + pc.transform.right * 10, Color.red);
+        //Debug.DrawLine(transform.position, transform.position + pc.transform.right * 10, Color.red);
 
         ButtonHeldCheck();
 

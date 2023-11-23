@@ -1,22 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class Player_Controller : MonoBehaviour
+public class Jump_Test : MonoBehaviour
 {
-    Pickaxe_Controller pickCtrl;
-
-    [Header("Visual")]
-    [SerializeField] GameObject annalyn_Sprite;
-    public bool facingRight;
-
-    [Header("Movement")]
     [SerializeField] CharacterController cc;
-    [SerializeField] float speed, moveSpeed;
-    [SerializeField] Vector3 moveDir;
-    bool canMove;
 
     [Header("Jumping")]
     [SerializeField] float gravity;
@@ -27,15 +15,7 @@ public class Player_Controller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        pickCtrl = FindObjectOfType<Pickaxe_Controller>();
-
-        //Sprite
-        facingRight = true;
-
-        //Movement
-        cc = GetComponent<CharacterController>();
-        speed = moveSpeed;
-        canMove = true;
+        cc = GetComponent<CharacterController>();   
 
         //Jumping
         gravity = -(2 * jumpHeight) / Mathf.Pow(timeToJumpApex, 2);
@@ -49,16 +29,14 @@ public class Player_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        InputCheck();
-        JumpCheck();
-
-        Debug.Log("Is Grounded " + cc.isGrounded);
+        CheckJump();
 
         if (cc.isGrounded && velocity.y < 0)
         {
             velocity.y = -2;
         }
         else velocity.y += gravity * Time.deltaTime;
+        Debug.Log("Is Grounded " + cc.isGrounded);
 
         if (velocity.y > 0)
         {
@@ -74,44 +52,16 @@ public class Player_Controller : MonoBehaviour
             velocity.y += gravity * (lowJumpMultiplier + 1) * Time.deltaTime;
         }
 
-        if (canMove)
-        {
-            if(moveDir.magnitude > Mathf.Epsilon)
-            {
-                cc.Move(moveDir * moveSpeed * Time.deltaTime);
-            }
-
-            if(moveDir.x > 0 && !facingRight)
-            {
-                Debug.Log("Moving Right");
-                FlipSprite();
-            }
-            else if(moveDir.x < 0 && facingRight)
-            {
-                Debug.Log("Moving Left");
-                FlipSprite();
-            }
-        }
-
         cc.Move(velocity * Time.deltaTime);
-
-        speed = moveSpeed;
     }
 
-    void InputCheck()
+    void CheckJump()
     {
-        float moveX = Input.GetAxisRaw("Horizontal");
-
-        moveDir = new Vector3(moveX, 0, 0).normalized;
-
         if (Input.GetKeyUp(KeyCode.Space) && !hasJumped) //Check to stop infinite jumping.
         {
             canPressSpace = true;
-        }      
-    }
+        }
 
-    void JumpCheck()
-    {
         if (cc.isGrounded)
         {
             if (Input.GetKeyDown(KeyCode.Space) && canPressSpace)
@@ -137,19 +87,5 @@ public class Player_Controller : MonoBehaviour
     {
         canPressSpace = false;
         hasJumped = false;
-    }
-
-    void FlipSprite()
-    {
-        Vector3 spriteScale = annalyn_Sprite.transform.localScale;
-        spriteScale.x *= -1;
-        annalyn_Sprite.transform.localScale = spriteScale;
-
-        facingRight = !facingRight;
-
-        if (!pickCtrl.hasThrownPick)
-        {
-            pickCtrl.SetPickPosition();
-        }
     }
 }
