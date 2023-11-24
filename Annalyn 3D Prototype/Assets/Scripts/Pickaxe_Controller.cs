@@ -86,7 +86,14 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             if(!rb.isKinematic)
             {
-                transform.Rotate(transform.forward * spinSpeed); 
+                transform.Rotate(transform.forward * spinSpeed);
+
+                throwDistance = Vector3.Distance(pc.transform.position, transform.position);
+
+                if (throwDistance >= 20)  //Starts recalling Pickaxe like a boomerang if it hasn't collided with anything over a set distance
+                {
+                    isRecallingPick = true;
+                }
             }
         }
         
@@ -113,6 +120,9 @@ public class Pickaxe_Controller : MonoBehaviour
                 hasThrownPick = false;
 
                 SetPickPosition();
+
+                recallDist = 0;
+                throwDistance = 0;
             }
 
         }
@@ -220,33 +230,45 @@ public class Pickaxe_Controller : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (hasThrownPick && !rb.isKinematic)
+        if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
         {
-            if (!other.gameObject.CompareTag("Player")) //Pick will stick in object collided with
+            Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
+
+            if (hasThrownPick)
             {
-                rb.isKinematic = true;
-
-                Vector3 dir = (other.transform.position - transform.position).normalized;
-                float direction = Vector3.Dot(dir, pc.transform.right);
-
-                if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
+                if (!other.gameObject.CompareTag("Player")) //Pick will stick in object collided with
                 {
-                    Debug.Log("Object is Left");
-                    transform.rotation = Quaternion.Euler(0, 0, 70);
-                }
-                else
-                {
-                    Debug.Log("Object is Right");
-                    transform.rotation = Quaternion.Euler(0, 0, -70);
+                    if (dest_Health != null)  //Will recall Pickaxe after delaing damage to Destrucibleh_Health object
+                    {
+                        dest_Health.health --;
+                        isRecallingPick = true;
+                    }
+                    else
+                    {
+                        if (!rb.isKinematic)
+                        {
+                            rb.isKinematic = true;
+
+                            Vector3 dir = (other.transform.position - transform.position).normalized;
+                            float direction = Vector3.Dot(dir, pc.transform.right);
+
+                            if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
+                            {
+                                Debug.Log("Object is Left");
+                                transform.rotation = Quaternion.Euler(0, 0, 70);
+                            }
+                            else
+                            {
+                                Debug.Log("Object is Right");
+                                transform.rotation = Quaternion.Euler(0, 0, -70);
+                            }
+                        }
+                    }
                 }
             }
-        }
 
-        if (isSwingingPick)
-        {
-            if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
+            if (isSwingingPick)
             {
-                Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
                 dest_Health.health --;
             }
         }

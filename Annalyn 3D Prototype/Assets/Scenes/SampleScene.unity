@@ -603,6 +603,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Destructible_Cube (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1470146699240754651, guid: 4bbfd09677d7f37468263a3f59806b8b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3435480731784870355, guid: 4bbfd09677d7f37468263a3f59806b8b, type: 3}
       propertyPath: m_RootOrder
       value: 6
@@ -1050,6 +1054,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9209825417778579626, guid: 52ee398f8bd95ed4e99315d7fdcea000, type: 3}
       propertyPath: hasThrownPick
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9209825417778579626, guid: 52ee398f8bd95ed4e99315d7fdcea000, type: 3}
+      propertyPath: throwDistance
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9209825417778579668, guid: 52ee398f8bd95ed4e99315d7fdcea000, type: 3}
