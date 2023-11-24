@@ -931,6 +931,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 278472259, guid: df0e89a6910778e43aad58b516bb9d69, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6762597412272979101, guid: df0e89a6910778e43aad58b516bb9d69, type: 3}
       propertyPath: m_Name
       value: Player_Annalyn

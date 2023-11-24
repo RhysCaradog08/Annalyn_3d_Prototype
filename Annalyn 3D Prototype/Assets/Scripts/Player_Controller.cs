@@ -22,7 +22,7 @@ public class Player_Controller : MonoBehaviour
     [SerializeField] float gravity;
     public Vector3 velocity;
     public float jumpHeight, jumpSpeed, timeToJumpApex, lowJumpMultiplier;
-    public bool hasJumped, isJumping, canPressSpace;
+    public bool hasJumped, canPressSpace;
 
     // Start is called before the first frame update
     void Start()
@@ -41,9 +41,7 @@ public class Player_Controller : MonoBehaviour
         gravity = -(2 * jumpHeight) / Mathf.Pow(timeToJumpApex, 2);
         jumpSpeed = Mathf.Abs(gravity) * timeToJumpApex;
         hasJumped = false;
-        isJumping = false;
         canPressSpace = true;
-        isJumping = false;
     }
 
     // Update is called once per frame
@@ -59,15 +57,6 @@ public class Player_Controller : MonoBehaviour
             velocity.y = -2;
         }
         else velocity.y += gravity * Time.deltaTime;
-
-        if (velocity.y > 0)
-        {
-            isJumping = true;
-        }
-        else if (velocity.y < 0)
-        {
-            isJumping = false;
-        }
 
         if (velocity.y > 0 && !Input.GetKey(KeyCode.Space))  //Allows for a brief Jump action to be performed.
         {
