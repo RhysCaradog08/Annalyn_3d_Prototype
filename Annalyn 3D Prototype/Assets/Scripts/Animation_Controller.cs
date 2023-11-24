@@ -11,8 +11,10 @@ public class Animation_Controller : MonoBehaviour
     [SerializeField] string currentState;
 
     public string idle = "Idle";
-    public string SwingPick_R = "SwingPick_R";
     public string SwingPick_L = "SwingPick_L";
+    public string SwingPick_R = "SwingPick_R";
+    public string PrepThrow_L = "PrepThrow_L";
+    public string PrepThrow_R = "PrepThrow_R";
 
 
     private void Awake()

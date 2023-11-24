@@ -10,7 +10,7 @@ public class Player_Controller : MonoBehaviour
 
     [Header("Visual")]
     [SerializeField] GameObject annalyn_Sprite;
-    public bool facingRight;
+    public bool isFacingRight;
 
     [Header("Movement")]
     [SerializeField] CharacterController cc;
@@ -31,7 +31,7 @@ public class Player_Controller : MonoBehaviour
         pickCtrl = FindObjectOfType<Pickaxe_Controller>();
 
         //Sprite
-        facingRight = true;
+        isFacingRight = true;
 
         //Movement
         cc = GetComponent<CharacterController>();
@@ -61,12 +61,12 @@ public class Player_Controller : MonoBehaviour
                 cc.Move(moveDir * moveSpeed * Time.deltaTime);
             }
 
-            if(moveDir.x > 0 && !facingRight)
+            if(moveDir.x > 0 && !isFacingRight)
             {
                 Debug.Log("Moving Right");
                 FlipSprite();
             }
-            else if(moveDir.x < 0 && facingRight)
+            else if(moveDir.x < 0 && isFacingRight)
             {
                 Debug.Log("Moving Left");
                 FlipSprite();
@@ -151,7 +151,7 @@ public class Player_Controller : MonoBehaviour
         spriteScale.x *= -1;
         annalyn_Sprite.transform.localScale = spriteScale;
 
-        facingRight = !facingRight;
+        isFacingRight = !isFacingRight;
 
         if (!pickCtrl.hasThrownPick)
         {

@@ -54,13 +54,17 @@ public class Pickaxe_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        transform.localScale = Vector3.one;
         //Debug.DrawLine(transform.position, transform.position + pc.transform.right * 10, Color.red);
 
         ButtonHeldCheck();
 
         if (!hasThrownPick && !isSwingingPick)
         {
-            animCtrl.ChangeAnimationState(animCtrl.idle);
+            if (!canThrowPick)
+            {
+                animCtrl.ChangeAnimationState(animCtrl.idle);
+            }
 
             if (Input.GetKeyUp(KeyCode.Mouse0) && !canThrowPick)
             {
@@ -72,6 +76,11 @@ public class Pickaxe_Controller : MonoBehaviour
                 ThrowPickaxe();
             }
         } 
+
+        if (canThrowPick)
+        {
+            PreparePickaxeThrow();
+        }
 
         if (hasThrownPick)
         {
@@ -133,18 +142,19 @@ public class Pickaxe_Controller : MonoBehaviour
 
     public void SetPickPosition()
     {
-        if (pc.facingRight)
+
+        if (pc.isFacingRight)
         {
             transform.position = holdPosR.position;
             transform.parent = holdPosR;
         }
-        else if (!pc.facingRight)
+        else if (!pc.isFacingRight)
         {
             transform.position = holdPosL.position;
             transform.parent = holdPosL;
         }
 
-        transform.rotation = Quaternion.Euler(0,0,0);
+        transform.localRotation = Quaternion.Euler(0,0,0);
     }
 
     void SwingPickaxe()
@@ -152,13 +162,25 @@ public class Pickaxe_Controller : MonoBehaviour
         Debug.Log("Swing Pickaxe");
         isSwingingPick = true;
 
-        if(pc.facingRight)
+        if(pc.isFacingRight)
         {
             animCtrl.ChangeAnimationState(animCtrl.SwingPick_R);
         }
-        else if (!pc.facingRight)
+        else if (!pc.isFacingRight)
         {
             animCtrl.ChangeAnimationState(animCtrl.SwingPick_L);
+        }
+    }
+
+    void PreparePickaxeThrow()
+    {
+        if (pc.isFacingRight)
+        {
+            animCtrl.ChangeAnimationState(animCtrl.PrepThrow_R);
+        }
+        else if (!pc.isFacingRight)
+        {
+            animCtrl.ChangeAnimationState(animCtrl.PrepThrow_L);
         }
     }
 
@@ -167,12 +189,12 @@ public class Pickaxe_Controller : MonoBehaviour
         rb.isKinematic = false;
         transform.parent = null;
         
-        if (pc.facingRight)
+        if (pc.isFacingRight)
         {
             spinSpeed = -7;
             rb.AddForce(pc.transform.right * throwForce, ForceMode.Impulse);
         }
-        else if (!pc.facingRight)
+        else if (!pc.isFacingRight)
         {
             spinSpeed = 7;
             rb.AddForce(-pc.transform.right * throwForce, ForceMode.Impulse);
