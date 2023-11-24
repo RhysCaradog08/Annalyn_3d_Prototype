@@ -22,6 +22,7 @@ public class Player_Controller : MonoBehaviour
     [SerializeField] float gravity;
     public Vector3 velocity;
     public float jumpHeight, jumpSpeed, timeToJumpApex, lowJumpMultiplier;
+    [SerializeField] float canJumpTime;
     public bool hasJumped, canPressSpace;
 
     // Start is called before the first frame update
@@ -49,19 +50,9 @@ public class Player_Controller : MonoBehaviour
     {
         InputCheck();
         JumpCheck();
+        ApplyGravity();
 
-        Debug.Log("Is Grounded " + cc.isGrounded);
-
-        if (cc.isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2;
-        }
-        else velocity.y += gravity * Time.deltaTime;
-
-        if (velocity.y > 0 && !Input.GetKey(KeyCode.Space))  //Allows for a brief Jump action to be performed.
-        {
-            velocity.y += gravity * (lowJumpMultiplier + 1) * Time.deltaTime;
-        }
+        Debug.Log("Is Grounded " + cc.isGrounded);        
 
         if (canMove)
         {
@@ -103,6 +94,17 @@ public class Player_Controller : MonoBehaviour
     {
         if (cc.isGrounded)
         {
+            canJumpTime = 0.5f;
+        }
+        else canJumpTime -= Time.deltaTime;
+
+        if (canJumpTime <= 0 && !cc.isGrounded)
+        {
+            canJumpTime = 0;
+        }
+
+        if (canJumpTime > 0)
+        {
             if (Input.GetKeyDown(KeyCode.Space) && canPressSpace)
             {
                 Debug.Log("Jump!");
@@ -119,6 +121,7 @@ public class Player_Controller : MonoBehaviour
     void Jump()
     {
         velocity.y = jumpSpeed;
+        canJumpTime = 0;
         hasJumped = true;
     }
 
@@ -126,6 +129,20 @@ public class Player_Controller : MonoBehaviour
     {
         canPressSpace = false;
         hasJumped = false;
+    }
+
+    void ApplyGravity()
+    {
+        if (cc.isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2;
+        }
+        else velocity.y += gravity * Time.deltaTime;
+
+        if (velocity.y > 0 && !Input.GetKey(KeyCode.Space))  //Allows for a brief Jump action to be performed.
+        {
+            velocity.y += gravity * (lowJumpMultiplier + 1) * Time.deltaTime;
+        }
     }
 
     void FlipSprite()
