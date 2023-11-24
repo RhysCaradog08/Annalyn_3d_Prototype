@@ -92,7 +92,7 @@ public class Player_Controller : MonoBehaviour
 
     void JumpCheck()
     {
-        if (cc.isGrounded)
+        if (cc.isGrounded)  //canJumpTime allows for "Coyote Time" jumps to be performed
         {
             canJumpTime = 0.5f;
         }
@@ -107,11 +107,11 @@ public class Player_Controller : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space) && canPressSpace)
             {
-                Debug.Log("Jump!");
+                //Debug.Log("Jump!");
                 Jump();
             }
 
-            if (hasJumped)  //Sets Jump animation and prevents player from additional jumps once the Jump action is performed.
+            if (hasJumped)  //Prevents player from additional jumps once the Jump action is performed.
             {
                 SetJumpBoolsToFalse();
             }
@@ -131,9 +131,9 @@ public class Player_Controller : MonoBehaviour
         hasJumped = false;
     }
 
-    void ApplyGravity()
+    void ApplyGravity()  //Applies relevant gravity modifier to player dependent on current situation
     {
-        if (cc.isGrounded && velocity.y < 0)
+        if (cc.isGrounded && velocity.y < 0)  //Keeps player grounded
         {
             velocity.y = -2;
         }
@@ -145,7 +145,7 @@ public class Player_Controller : MonoBehaviour
         }
     }
 
-    void FlipSprite()
+    void FlipSprite()  //Will flip player sprite to face appropriate direction of locomotion
     {
         Vector3 spriteScale = annalyn_Sprite.transform.localScale;
         spriteScale.x *= -1;

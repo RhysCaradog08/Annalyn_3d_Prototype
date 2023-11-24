@@ -104,7 +104,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
             recallDist = Vector3.Distance(transform.position, pc.transform.position);
 
-            if (recallDist < 2)
+            if (recallDist < 2) //Resets Pickaxe velocity and position when close enough to the player
             {
                 rb.velocity = Vector3.zero;
                 rb.isKinematic = true;
@@ -138,9 +138,9 @@ public class Pickaxe_Controller : MonoBehaviour
                 canThrowPick = true;
             }
         }
-    }
+    } //Checks if button is being held down or pressed for distinct actions
 
-    public void SetPickPosition()
+    public void SetPickPosition() //Sets Pickaxe to be in the players front hand
     {
 
         if (pc.isFacingRight)
@@ -170,9 +170,9 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             animCtrl.ChangeAnimationState(animCtrl.SwingPick_L);
         }
-    }
+    } //Sets animation to swing Pickaxe
 
-    void PreparePickaxeThrow()
+    void PreparePickaxeThrow() //Sets animation to show Pickaxe is ready to be thrown
     {
         if (pc.isFacingRight)
         {
@@ -182,7 +182,7 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             animCtrl.ChangeAnimationState(animCtrl.PrepThrow_L);
         }
-    }
+    } 
 
     void ThrowPickaxe()
     {
@@ -202,7 +202,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
         hasThrownPick = true;
         canThrowPick = false;
-    }
+    } //Will throw Pickaxe in direction that player is facing
 
     void RecallPickaxe()
     {
@@ -216,20 +216,20 @@ public class Pickaxe_Controller : MonoBehaviour
         Vector3 recallDir = (pc.transform.position - transform.position).normalized * throwForce;
 
         rb.velocity = recallDir;
-    }
+    } //Recalls Pickaxe to Players current position
 
     private void OnTriggerEnter(Collider other)
     {
         if (hasThrownPick && !rb.isKinematic)
         {
-            if (!other.gameObject.CompareTag("Player"))
+            if (!other.gameObject.CompareTag("Player")) //Pick will stick in object collided with
             {
                 rb.isKinematic = true;
 
                 Vector3 dir = (other.transform.position - transform.position).normalized;
                 float direction = Vector3.Dot(dir, pc.transform.right);
 
-                if (direction < 0)
+                if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
                 {
                     Debug.Log("Object is Left");
                     transform.rotation = Quaternion.Euler(0, 0, 70);
@@ -244,7 +244,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (isSwingingPick)
         {
-            if (other.GetComponent<Destructible_Health>() != null)
+            if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
             {
                 Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
                 dest_Health.health --;
