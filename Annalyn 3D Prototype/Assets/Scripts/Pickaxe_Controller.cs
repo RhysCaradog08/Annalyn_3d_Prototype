@@ -7,7 +7,7 @@ using static UnityEngine.GraphicsBuffer;
 public class Pickaxe_Controller : MonoBehaviour
 {
     Animation_Controller animCtrl;
-    Player_Controller pc;
+    Player_Controller playerCtrl;
     Rigidbody rb;
 
     public Transform holdPosR, holdPosL;
@@ -31,11 +31,15 @@ public class Pickaxe_Controller : MonoBehaviour
     [SerializeField] float recallDist;
     [SerializeField] bool isRecallingPick;
 
+    [Header("Stick to Wall")]
+    public float currentGravity;
+    public bool isStuckToWall;
+
     // Start is called before the first frame update
     void Start()
     {
         animCtrl = FindObjectOfType<Animation_Controller>();
-        pc = FindObjectOfType<Player_Controller>();
+        playerCtrl = FindObjectOfType<Player_Controller>();
         rb = GetComponent<Rigidbody>();
 
         transform.position = holdPosR.position;
@@ -52,6 +56,9 @@ public class Pickaxe_Controller : MonoBehaviour
 
         //Recall
         isRecallingPick = false;
+
+        //Stick to Wall
+        isStuckToWall = false;
     }
 
     // Update is called once per frame
@@ -97,7 +104,7 @@ public class Pickaxe_Controller : MonoBehaviour
             {
                 transform.Rotate(transform.forward * spinSpeed);
 
-                throwDistance = Vector3.Distance(pc.transform.position, transform.position);
+                throwDistance = Vector3.Distance(playerCtrl.transform.position, transform.position);
 
                 if (throwDistance >= 20)  //Starts recalling Pickaxe like a boomerang if it hasn't collided with anything over a set distance
                 {
@@ -118,7 +125,7 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             RecallPickaxe();
 
-            recallDist = Vector3.Distance(transform.position, pc.transform.position);
+            recallDist = Vector3.Distance(transform.position, playerCtrl.transform.position);
 
             if (recallDist < 2) //Resets Pickaxe velocity and position when close enough to the player
             {
@@ -134,6 +141,11 @@ public class Pickaxe_Controller : MonoBehaviour
                 throwDistance = 0;
             }
 
+        }
+
+        if (isStuckToWall)
+        {
+            StickToWall();
         }
     }
 
@@ -162,12 +174,12 @@ public class Pickaxe_Controller : MonoBehaviour
     public void SetPickPosition() //Sets Pickaxe to be in the players front hand
     {
 
-        if (pc.isFacingRight)
+        if (playerCtrl.isFacingRight)
         {
             transform.position = holdPosR.position;
             transform.parent = holdPosR;
         }
-        else if (!pc.isFacingRight)
+        else if (!playerCtrl.isFacingRight)
         {
             transform.position = holdPosL.position;
             transform.parent = holdPosL;
@@ -181,11 +193,11 @@ public class Pickaxe_Controller : MonoBehaviour
         //Debug.Log("Swing Pickaxe");
         isSwingingPick = true;
 
-        if(pc.isFacingRight)
+        if(playerCtrl.isFacingRight)
         {
             animCtrl.ChangeAnimationState(animCtrl.SwingPick_R);
         }
-        else if (!pc.isFacingRight)
+        else if (!playerCtrl.isFacingRight)
         {
             animCtrl.ChangeAnimationState(animCtrl.SwingPick_L);
         }
@@ -193,11 +205,11 @@ public class Pickaxe_Controller : MonoBehaviour
 
     void PreparePickaxeThrow() //Sets animation to show Pickaxe is ready to be thrown
     {
-        if (pc.isFacingRight)
+        if (playerCtrl.isFacingRight)
         {
             animCtrl.ChangeAnimationState(animCtrl.PrepThrow_R);
         }
-        else if (!pc.isFacingRight)
+        else if (!playerCtrl.isFacingRight)
         {
             animCtrl.ChangeAnimationState(animCtrl.PrepThrow_L);
         }
@@ -208,15 +220,15 @@ public class Pickaxe_Controller : MonoBehaviour
         rb.isKinematic = false;
         transform.parent = null;
         
-        if (pc.isFacingRight)
+        if (playerCtrl.isFacingRight)
         {
             spinSpeed = -7;
-            rb.AddForce(pc.transform.right * throwForce, ForceMode.Impulse);
+            rb.AddForce(playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
-        else if (!pc.isFacingRight)
+        else if (!playerCtrl.isFacingRight)
         {
             spinSpeed = 7;
-            rb.AddForce(-pc.transform.right * throwForce, ForceMode.Impulse);
+            rb.AddForce(-playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
 
         hasThrownPick = true;
@@ -232,14 +244,24 @@ public class Pickaxe_Controller : MonoBehaviour
             rb.isKinematic = false;
         }
 
-        Vector3 recallDir = (pc.transform.position - transform.position).normalized * throwForce;
+        Vector3 recallDir = (playerCtrl.transform.position - transform.position).normalized * throwForce;
 
         rb.velocity = recallDir;
     } //Recalls Pickaxe to Players current position
 
+    void StickToWall()
+    {
+        Debug.Log("Stick to Wall");
+        playerCtrl.gravity = 0;
+        playerCtrl.velocity = Vector3.zero;
+
+        Vector3 currentPlayerPosition = playerCtrl.transform.position;
+        playerCtrl.transform.position = currentPlayerPosition;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.name);
+        //Debug.Log(other.name);
 
         if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
         {
@@ -268,7 +290,7 @@ public class Pickaxe_Controller : MonoBehaviour
                     rb.isKinematic = true;
 
                     Vector3 dir = (other.transform.position - transform.position).normalized;
-                    float direction = Vector3.Dot(dir, pc.transform.right);
+                    float direction = Vector3.Dot(dir, playerCtrl.transform.right);
 
                     if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
                     {
@@ -282,7 +304,29 @@ public class Pickaxe_Controller : MonoBehaviour
                     }
                 }
             }
+        }
 
+        if(isSwingingPick && !playerCtrl.charCtrl.isGrounded)
+        {
+            if (!other.gameObject.CompareTag("Player"))
+            {
+                playerCtrl.currentGravity = playerCtrl.gravity;
+                isStuckToWall = true;
+
+                Vector3 dir = (other.transform.position - transform.position).normalized;
+                float direction = Vector3.Dot(dir, playerCtrl.transform.right);
+
+                if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
+                {
+                    //Debug.Log("Object is Left");
+                    transform.rotation = Quaternion.Euler(0, 0, 70);
+                }
+                else
+                {
+                    //Debug.Log("Object is Right");
+                    transform.rotation = Quaternion.Euler(0, 0, -70);
+                }
+            }
         }
     }
 }

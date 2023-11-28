@@ -13,15 +13,15 @@ public class Player_Controller : MonoBehaviour
     public bool isFacingRight;
 
     [Header("Movement")]
-    [SerializeField] CharacterController cc;
+    public CharacterController charCtrl;
     [SerializeField] float speed, moveSpeed;
     [SerializeField] Vector3 moveDir;
     bool canMove;
 
     [Header("Jumping")]
-    [SerializeField] float gravity;
+    //[SerializeField] float gravity;
     public Vector3 velocity;
-    public float jumpHeight, jumpSpeed, timeToJumpApex, lowJumpMultiplier;
+    public float gravity, currentGravity, jumpHeight, jumpSpeed, timeToJumpApex, lowJumpMultiplier;
     [SerializeField] float canJumpTime;
     public bool hasJumped, canPressSpace;
 
@@ -34,7 +34,7 @@ public class Player_Controller : MonoBehaviour
         isFacingRight = true;
 
         //Movement
-        cc = GetComponent<CharacterController>();
+        charCtrl = GetComponent<CharacterController>();
         speed = moveSpeed;
         canMove = true;
 
@@ -52,13 +52,19 @@ public class Player_Controller : MonoBehaviour
         JumpCheck();
         ApplyGravity();
 
-        //Debug.Log("Is Grounded " + cc.isGrounded);        
+        //Debug.Log("Is Grounded " + cc.isGrounded);
+        
+        if (pickCtrl.isStuckToWall)
+        {
+            canMove = false;
+        }
+        else canMove = true;
 
         if (canMove)
         {
             if(moveDir.magnitude > Mathf.Epsilon)
             {
-                cc.Move(moveDir * moveSpeed * Time.deltaTime);
+                charCtrl.Move(moveDir * moveSpeed * Time.deltaTime);
             }
 
             if(moveDir.x > 0 && !isFacingRight)
@@ -73,7 +79,7 @@ public class Player_Controller : MonoBehaviour
             }
         }
 
-        cc.Move(velocity * Time.deltaTime);
+        charCtrl.Move(velocity * Time.deltaTime);
 
         speed = moveSpeed;
     }
@@ -92,13 +98,13 @@ public class Player_Controller : MonoBehaviour
 
     void JumpCheck()
     {
-        if (cc.isGrounded)  //canJumpTime allows for "Coyote Time" jumps to be performed
+        if (charCtrl.isGrounded || pickCtrl.isStuckToWall)  //canJumpTime allows for "Coyote Time" jumps to be performed
         {
             canJumpTime = 0.5f;
         }
         else canJumpTime -= Time.deltaTime;
 
-        if (canJumpTime <= 0 && !cc.isGrounded)
+        if (canJumpTime <= 0 && !charCtrl.isGrounded)
         {
             canJumpTime = 0;
         }
@@ -107,6 +113,11 @@ public class Player_Controller : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space) && canPressSpace)
             {
+                if(pickCtrl.isStuckToWall)
+                {
+                    pickCtrl.isStuckToWall = false;
+                    gravity = currentGravity;
+                }
                 //Debug.Log("Jump!");
                 Jump();
             }
@@ -133,7 +144,7 @@ public class Player_Controller : MonoBehaviour
 
     void ApplyGravity()  //Applies relevant gravity modifier to player dependent on current situation
     {
-        if (cc.isGrounded && velocity.y < 0)  //Keeps player grounded
+        if (charCtrl.isGrounded && velocity.y < 0)  //Keeps player grounded
         {
             velocity.y = -2;
         }
