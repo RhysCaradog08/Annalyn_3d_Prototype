@@ -11,6 +11,7 @@ public class Pickaxe_Controller : MonoBehaviour
     Rigidbody rb;
 
     public Transform holdPosR, holdPosL;
+    Collider pickaxeCollider;
 
     [Header("Button Held Check")]
     const float minButtonHold = 0.25f;
@@ -39,6 +40,8 @@ public class Pickaxe_Controller : MonoBehaviour
 
         transform.position = holdPosR.position;
         transform.parent = holdPosR;
+        pickaxeCollider = GetComponent<Collider>();
+        pickaxeCollider.enabled = false;
 
         //Swing
         isSwingingPick = false;
@@ -76,6 +79,12 @@ public class Pickaxe_Controller : MonoBehaviour
                 ThrowPickaxe();
             }
         } 
+
+        if(isSwingingPick || hasThrownPick)
+        {
+            pickaxeCollider.enabled = true;
+        }
+        else pickaxeCollider.enabled = false;
 
         if (canThrowPick)
         {
@@ -169,7 +178,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
     void SwingPickaxe()
     {
-        Debug.Log("Swing Pickaxe");
+        //Debug.Log("Swing Pickaxe");
         isSwingingPick = true;
 
         if(pc.isFacingRight)
@@ -230,47 +239,50 @@ public class Pickaxe_Controller : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log(other.name);
+
         if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
         {
             Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
 
-            if (hasThrownPick)
+            if (dest_Health != null)  //Will recall Pickaxe after delaing damage to Destructible_Health object
             {
-                if (!other.gameObject.CompareTag("Player")) //Pick will stick in object collided with
+                if (isSwingingPick || hasThrownPick)
                 {
-                    if (dest_Health != null)  //Will recall Pickaxe after delaing damage to Destrucibleh_Health object
+                    dest_Health.health--;                   
+                }
+
+                if(hasThrownPick)
+                {
+                    isRecallingPick = true;
+                }
+            }
+        }
+
+        if (hasThrownPick)
+        {
+            if (!other.gameObject.CompareTag("Player")) //Pick will stick in object collided with
+            {
+                if (!rb.isKinematic)
+                {
+                    rb.isKinematic = true;
+
+                    Vector3 dir = (other.transform.position - transform.position).normalized;
+                    float direction = Vector3.Dot(dir, pc.transform.right);
+
+                    if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
                     {
-                        dest_Health.health --;
-                        isRecallingPick = true;
+                        //Debug.Log("Object is Left");
+                        transform.rotation = Quaternion.Euler(0, 0, 70);
                     }
                     else
                     {
-                        if (!rb.isKinematic)
-                        {
-                            rb.isKinematic = true;
-
-                            Vector3 dir = (other.transform.position - transform.position).normalized;
-                            float direction = Vector3.Dot(dir, pc.transform.right);
-
-                            if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
-                            {
-                                Debug.Log("Object is Left");
-                                transform.rotation = Quaternion.Euler(0, 0, 70);
-                            }
-                            else
-                            {
-                                Debug.Log("Object is Right");
-                                transform.rotation = Quaternion.Euler(0, 0, -70);
-                            }
-                        }
+                        //Debug.Log("Object is Right");
+                        transform.rotation = Quaternion.Euler(0, 0, -70);
                     }
                 }
             }
 
-            if (isSwingingPick)
-            {
-                dest_Health.health --;
-            }
         }
     }
 }

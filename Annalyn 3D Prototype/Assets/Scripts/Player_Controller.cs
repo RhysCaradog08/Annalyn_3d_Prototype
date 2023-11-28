@@ -52,7 +52,7 @@ public class Player_Controller : MonoBehaviour
         JumpCheck();
         ApplyGravity();
 
-        Debug.Log("Is Grounded " + cc.isGrounded);        
+        //Debug.Log("Is Grounded " + cc.isGrounded);        
 
         if (canMove)
         {
@@ -63,12 +63,12 @@ public class Player_Controller : MonoBehaviour
 
             if(moveDir.x > 0 && !isFacingRight)
             {
-                Debug.Log("Moving Right");
+                //Debug.Log("Moving Right");
                 FlipSprite();
             }
             else if(moveDir.x < 0 && isFacingRight)
             {
-                Debug.Log("Moving Left");
+                //Debug.Log("Moving Left");
                 FlipSprite();
             }
         }
