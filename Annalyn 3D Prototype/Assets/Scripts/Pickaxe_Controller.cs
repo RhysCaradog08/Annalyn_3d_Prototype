@@ -76,14 +76,17 @@ public class Pickaxe_Controller : MonoBehaviour
                 animCtrl.ChangeAnimationState(animCtrl.idle);
             }
 
-            if (Input.GetKeyUp(KeyCode.Mouse0) && !canThrowPick)
+            if (!isStuckToWall)
             {
-                SwingPickaxe();
-            }
+                if (Input.GetKeyUp(KeyCode.Mouse0) && !hasThrownPick)
+                {
+                    SwingPickaxe();
+                }
 
-            if (Input.GetKeyUp(KeyCode.Mouse0) && canThrowPick)
-            {
-                ThrowPickaxe();
+                if (Input.GetKeyUp(KeyCode.Mouse0) && canThrowPick)
+                {
+                    ThrowPickaxe();
+                }
             }
         } 
 
@@ -146,6 +149,12 @@ public class Pickaxe_Controller : MonoBehaviour
         if (isStuckToWall)
         {
             StickToWall();
+
+            if (Input.GetKeyUp(KeyCode.Mouse0))
+            {
+                isStuckToWall = false;
+                playerCtrl.gravity = playerCtrl.currentGravity;
+            }
         }
     }
 
@@ -235,9 +244,9 @@ public class Pickaxe_Controller : MonoBehaviour
         canThrowPick = false;
     } //Will throw Pickaxe in direction that player is facing
 
-    void RecallPickaxe()
+    void RecallPickaxe()  //Recalls Pickaxe to Players current position
     {
-        Debug.Log("Recall Pickaxe");
+        //Debug.Log("Recall Pickaxe");
 
         if (rb.isKinematic)
         {
@@ -247,21 +256,27 @@ public class Pickaxe_Controller : MonoBehaviour
         Vector3 recallDir = (playerCtrl.transform.position - transform.position).normalized * throwForce;
 
         rb.velocity = recallDir;
-    } //Recalls Pickaxe to Players current position
+    } 
 
     void StickToWall()
     {
-        Debug.Log("Stick to Wall");
+        //Debug.Log("Stick to Wall");
         playerCtrl.gravity = 0;
         playerCtrl.velocity = Vector3.zero;
 
         Vector3 currentPlayerPosition = playerCtrl.transform.position;
         playerCtrl.transform.position = currentPlayerPosition;
+
+        if (playerCtrl.isFacingRight)
+        {
+            transform.rotation = Quaternion.Euler(0, 0, -70);
+        }
+        else transform.rotation = Quaternion.Euler(0, 0, 70);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        //Debug.Log(other.name);
+        Debug.Log(other.name);
 
         if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
         {
@@ -271,19 +286,20 @@ public class Pickaxe_Controller : MonoBehaviour
             {
                 if (isSwingingPick || hasThrownPick)
                 {
-                    dest_Health.health--;                   
+                    dest_Health.health--;
                 }
 
-                if(hasThrownPick)
+                if (hasThrownPick)
                 {
                     isRecallingPick = true;
                 }
             }
+
         }
 
         if (hasThrownPick)
         {
-            if (!other.gameObject.CompareTag("Player")) //Pick will stick in object collided with
+            if (!other.gameObject.CompareTag("Player") && !other.GetComponent<Destructible_Health>()) //Pick will stick in object collided with
             {
                 if (!rb.isKinematic)
                 {
@@ -306,26 +322,12 @@ public class Pickaxe_Controller : MonoBehaviour
             }
         }
 
-        if(isSwingingPick && !playerCtrl.charCtrl.isGrounded)
+        if (isSwingingPick && !playerCtrl.charCtrl.isGrounded)
         {
             if (!other.gameObject.CompareTag("Player"))
             {
                 playerCtrl.currentGravity = playerCtrl.gravity;
                 isStuckToWall = true;
-
-                Vector3 dir = (other.transform.position - transform.position).normalized;
-                float direction = Vector3.Dot(dir, playerCtrl.transform.right);
-
-                if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
-                {
-                    //Debug.Log("Object is Left");
-                    transform.rotation = Quaternion.Euler(0, 0, 70);
-                }
-                else
-                {
-                    //Debug.Log("Object is Right");
-                    transform.rotation = Quaternion.Euler(0, 0, -70);
-                }
             }
         }
     }
