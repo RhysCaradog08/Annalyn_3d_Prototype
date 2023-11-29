@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static UnityEngine.GraphicsBuffer;
 
 public class Pickaxe_Controller : MonoBehaviour
@@ -26,6 +27,11 @@ public class Pickaxe_Controller : MonoBehaviour
     Vector3 throwDirection;
     [SerializeField] bool canThrowPick;
     public bool hasThrownPick;
+
+    [Header("Arc Throw")]
+    [SerializeField] float arcHeight, arcDistance;
+    float gravity = -50;
+    [SerializeField] Vector3 arcApex, arcEnd;
 
     [Header("Recall")]
     [SerializeField] float recallDist;
@@ -53,6 +59,9 @@ public class Pickaxe_Controller : MonoBehaviour
         //Throw
         canThrowPick = false;
         hasThrownPick = false;
+
+        //Arc Throw
+        rb.useGravity = false;
 
         //Recall
         isRecallingPick = false;
@@ -87,6 +96,16 @@ public class Pickaxe_Controller : MonoBehaviour
                 {
                     ThrowPickaxe();
                 }
+
+                if(Input.GetKey(KeyCode.Mouse1))
+                {
+                    canThrowPick = true;
+                }
+
+                if (Input.GetKeyUp(KeyCode.Mouse1))
+                {
+                    ArcThrow();
+                }
             }
         } 
 
@@ -114,13 +133,13 @@ public class Pickaxe_Controller : MonoBehaviour
                     isRecallingPick = true;
                 }
             }
-        }
-        
-        if (hasThrownPick && Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            if (rb.isKinematic && !isRecallingPick)
+
+            if(Input.GetKeyDown(KeyCode.Mouse0) ||  Input.GetKeyDown(KeyCode.Mouse1))
             {
-                isRecallingPick = true;
+                if (rb.isKinematic && !isRecallingPick)
+                {
+                    isRecallingPick = true;
+                }
             }
         }
 
@@ -133,6 +152,7 @@ public class Pickaxe_Controller : MonoBehaviour
             if (recallDist < 2) //Resets Pickaxe velocity and position when close enough to the player
             {
                 rb.velocity = Vector3.zero;
+                rb.useGravity = false;
                 rb.isKinematic = true;
 
                 isRecallingPick = false;
@@ -150,7 +170,7 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             StickToWall();
 
-            if (Input.GetKeyUp(KeyCode.Mouse0))
+            if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1))
             {
                 isStuckToWall = false;
                 playerCtrl.gravity = playerCtrl.currentGravity;
@@ -229,7 +249,7 @@ public class Pickaxe_Controller : MonoBehaviour
         rb.isKinematic = false;
         transform.parent = null;
         
-        if (playerCtrl.isFacingRight)
+        if (playerCtrl.isFacingRight) //Will throw Pickaxe in direction that player is facing
         {
             spinSpeed = -7;
             rb.AddForce(playerCtrl.transform.right * throwForce, ForceMode.Impulse);
@@ -242,7 +262,42 @@ public class Pickaxe_Controller : MonoBehaviour
 
         hasThrownPick = true;
         canThrowPick = false;
-    } //Will throw Pickaxe in direction that player is facing
+    } 
+
+    Vector3 CalculateArcVelocity()
+    {
+        Vector3 playerPosition = playerCtrl.transform.position;
+
+        if (playerCtrl.isFacingRight)
+        {
+            arcApex = new Vector3(playerPosition.x + arcDistance / 2, playerPosition.y + arcHeight, 0);
+            arcEnd = new Vector3(playerPosition.x + arcDistance, 0, 0);
+        }
+        else if (!playerCtrl.isFacingRight)
+        {
+            arcApex = new Vector3(playerPosition.x - arcDistance / 2, playerPosition.y + arcHeight, 0);
+            arcEnd = new Vector3(playerPosition.x - arcDistance, 0, 0);
+        }
+
+        float displacementY = (arcEnd.y - rb.position.y) + (arcHeight);
+        Vector3 displacementX = new Vector3(arcEnd.x - rb.position.x, 0, 0);
+
+        Vector3 velocityY = Vector3.up * Mathf.Sqrt(-2 * gravity * arcHeight);
+        Vector3 velocityX = displacementX / (Mathf.Sqrt(-2 * arcHeight/ gravity) + (Mathf.Sqrt(2 * displacementY - arcHeight) / gravity));
+
+        return velocityX + velocityY;
+    }
+
+    void ArcThrow() //Throws Pickaxe in an Arc to reach and clear higher targets and obstacles
+    {
+        Physics.gravity = Vector3.up * gravity;
+        rb.useGravity = true;
+        rb.isKinematic = false;
+        rb.velocity = CalculateArcVelocity();
+
+        hasThrownPick = true;
+        canThrowPick = false;
+    }
 
     void RecallPickaxe()  //Recalls Pickaxe to Players current position
     {
@@ -306,17 +361,27 @@ public class Pickaxe_Controller : MonoBehaviour
                     rb.isKinematic = true;
 
                     Vector3 dir = (other.transform.position - transform.position).normalized;
-                    float direction = Vector3.Dot(dir, playerCtrl.transform.right);
+                    float directionX = Vector3.Dot(dir, playerCtrl.transform.right);
+                    float directionY = Vector3.Dot(dir, playerCtrl.transform.up);
 
-                    if (direction < 0) //Uses dot product to make Pickaxe stick out of contacted object
+                    if (directionX < 0) //Uses dot product to make Pickaxe stick out of contacted object
                     {
                         //Debug.Log("Object is Left");
                         transform.rotation = Quaternion.Euler(0, 0, 70);
                     }
-                    else
+                    else if (directionX > 0)
                     {
                         //Debug.Log("Object is Right");
                         transform.rotation = Quaternion.Euler(0, 0, -70);
+                    }
+
+                    if (directionY < 0) 
+                    {
+                        transform.rotation = Quaternion.Euler(0, 0, -120);
+                    }
+                    else if (directionY > 0)
+                    {
+                        transform.rotation = Quaternion.Euler(0, 0, -60);
                     }
                 }
             }
