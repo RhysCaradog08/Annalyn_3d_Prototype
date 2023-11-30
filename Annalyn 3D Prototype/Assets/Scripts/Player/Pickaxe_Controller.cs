@@ -347,26 +347,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.name);
-
-        if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
-        {
-            Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
-
-            if (dest_Health != null)  //Will recall Pickaxe after delaing damage to Destructible_Health object
-            {
-                if (isSwingingPick || hasThrownPick && !hasThrownInArc)
-                {
-                    dest_Health.health--;
-                }
-
-                if (hasThrownPick)
-                {
-                    isRecallingPick = true;
-                }
-            }
-
-        }
+        //Debug.Log(other.name);
 
         if (hasThrownPick)
         {
@@ -406,6 +387,34 @@ public class Pickaxe_Controller : MonoBehaviour
                 playerCtrl.currentGravity = playerCtrl.gravity;
                 isStuckToWall = true;
             }
+        }
+
+        if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
+        {
+            Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
+
+            if (dest_Health != null)  //Will recall Pickaxe after delaing damage to Destructible_Health object
+            {
+                if (isSwingingPick || hasThrownPick && !hasThrownInArc)
+                {
+                    dest_Health.health--;
+                }
+
+                if (hasThrownPick)
+                {
+                    isRecallingPick = true;
+                }
+            }
+
+        }
+
+        if (other.CompareTag("Switch"))
+        {
+            Debug.Log(other.name);
+
+            Interactivate_Element_Activation interact = other.gameObject.GetComponent<Interactivate_Element_Activation>();
+
+            interact.isActivated = true;
         }
     }
 }
