@@ -293,7 +293,7 @@ public class Pickaxe_Controller : MonoBehaviour
             arcEnd = new Vector3(playerPosition.x - arcDistance, 0, 0);
         }
 
-        float displacementY = (arcEnd.y - rb.position.y) + (arcHeight);
+        float displacementY = (arcEnd.y - rb.position.y) + (arcApex.y);
         Vector3 displacementX = new Vector3(arcEnd.x - rb.position.x, 0, 0);
 
         Vector3 velocityY = Vector3.up * Mathf.Sqrt(-2 * gravity * arcHeight);
