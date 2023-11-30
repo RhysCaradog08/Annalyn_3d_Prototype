@@ -32,6 +32,7 @@ public class Pickaxe_Controller : MonoBehaviour
     [SerializeField] float arcHeight, arcDistance;
     float gravity = -50;
     [SerializeField] Vector3 arcApex, arcEnd;
+    [SerializeField] bool hasThrownInArc;
 
     [Header("Recall")]
     [SerializeField] float recallDist;
@@ -62,6 +63,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
         //Arc Throw
         rb.useGravity = false;
+        hasThrownInArc = false;
 
         //Recall
         isRecallingPick = false;
@@ -122,13 +124,22 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (hasThrownPick)
         {
-            if(!rb.isKinematic)
+
+            if (!rb.isKinematic)
             {
+                if (playerCtrl.isFacingRight) //Sets rotation of Pickaxe when thrown
+                {
+                    spinSpeed = -7;
+                }
+                else if (!playerCtrl.isFacingRight)
+                {
+                    spinSpeed = 7;
+                }
                 transform.Rotate(transform.forward * spinSpeed);
 
                 throwDistance = Vector3.Distance(playerCtrl.transform.position, transform.position);
 
-                if (throwDistance >= 20)  //Starts recalling Pickaxe like a boomerang if it hasn't collided with anything over a set distance
+                if (throwDistance >= 20 && !hasThrownInArc)  //Starts recalling Pickaxe like a boomerang if it hasn't collided with anything over a set distance
                 {
                     isRecallingPick = true;
                 }
@@ -151,6 +162,11 @@ public class Pickaxe_Controller : MonoBehaviour
 
             if (recallDist < 2) //Resets Pickaxe velocity and position when close enough to the player
             {
+                if(hasThrownInArc)
+                {
+                    hasThrownInArc = false;
+                }
+
                 rb.velocity = Vector3.zero;
                 rb.useGravity = false;
                 rb.isKinematic = true;
@@ -251,12 +267,10 @@ public class Pickaxe_Controller : MonoBehaviour
         
         if (playerCtrl.isFacingRight) //Will throw Pickaxe in direction that player is facing
         {
-            spinSpeed = -7;
             rb.AddForce(playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
         else if (!playerCtrl.isFacingRight)
         {
-            spinSpeed = 7;
             rb.AddForce(-playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
 
@@ -293,8 +307,10 @@ public class Pickaxe_Controller : MonoBehaviour
         Physics.gravity = Vector3.up * gravity;
         rb.useGravity = true;
         rb.isKinematic = false;
+        transform.parent = null;    
         rb.velocity = CalculateArcVelocity();
 
+        hasThrownInArc = true;
         hasThrownPick = true;
         canThrowPick = false;
     }
@@ -308,7 +324,7 @@ public class Pickaxe_Controller : MonoBehaviour
             rb.isKinematic = false;
         }
 
-        Vector3 recallDir = (playerCtrl.transform.position - transform.position).normalized * throwForce;
+        Vector3 recallDir = (playerCtrl.transform.position - transform.position).normalized * (throwForce * 1.5f);
 
         rb.velocity = recallDir;
     } 
@@ -339,7 +355,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
             if (dest_Health != null)  //Will recall Pickaxe after delaing damage to Destructible_Health object
             {
-                if (isSwingingPick || hasThrownPick)
+                if (isSwingingPick || hasThrownPick && !hasThrownInArc)
                 {
                     dest_Health.health--;
                 }
@@ -374,15 +390,11 @@ public class Pickaxe_Controller : MonoBehaviour
                         //Debug.Log("Object is Right");
                         transform.rotation = Quaternion.Euler(0, 0, -70);
                     }
+                }
 
-                    if (directionY < 0) 
-                    {
-                        transform.rotation = Quaternion.Euler(0, 0, -120);
-                    }
-                    else if (directionY > 0)
-                    {
-                        transform.rotation = Quaternion.Euler(0, 0, -60);
-                    }
+                if (hasThrownInArc)
+                {
+                    isRecallingPick = true;
                 }
             }
         }
