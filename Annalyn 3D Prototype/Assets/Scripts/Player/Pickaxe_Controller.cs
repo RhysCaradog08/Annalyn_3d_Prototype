@@ -13,6 +13,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
     public Transform holdPosR, holdPosL;
     Collider pickaxeCollider;
+    public bool canDealDamage;
 
     [Header("Button Held Check")]
     const float minButtonHold = 0.25f;
@@ -20,12 +21,12 @@ public class Pickaxe_Controller : MonoBehaviour
     public bool buttonHeld;
 
     [Header("Swing")]
-    public bool isSwingingPick;
+    public bool isSwingingPickaxe;
 
     [Header("Throw")]
     [SerializeField] float throwDistance, throwForce, spinSpeed;
     Vector3 throwDirection;
-    [SerializeField] bool canThrowPick;
+    [SerializeField] bool canThrowPickaxe;
     public bool hasThrownPick;
 
     [Header("Arc Throw")]
@@ -36,9 +37,10 @@ public class Pickaxe_Controller : MonoBehaviour
 
     [Header("Recall")]
     [SerializeField] float recallDist;
-    [SerializeField] bool isRecallingPick;
+    [SerializeField] bool isRecallingPickaxe;
 
     [Header("Stick to Wall")]
+    [SerializeField] GameObject objectStuckTo;
     public float currentGravity;
     public bool isStuckToWall;
 
@@ -54,11 +56,13 @@ public class Pickaxe_Controller : MonoBehaviour
         pickaxeCollider = GetComponent<Collider>();
         pickaxeCollider.enabled = false;
 
+        canDealDamage = false;
+
         //Swing
-        isSwingingPick = false;
+        isSwingingPickaxe = false;
 
         //Throw
-        canThrowPick = false;
+        canThrowPickaxe = false;
         hasThrownPick = false;
 
         //Arc Throw
@@ -66,9 +70,10 @@ public class Pickaxe_Controller : MonoBehaviour
         hasThrownInArc = false;
 
         //Recall
-        isRecallingPick = false;
+        isRecallingPickaxe = false;
 
         //Stick to Wall
+        objectStuckTo = null;
         isStuckToWall = false;
     }
 
@@ -80,28 +85,27 @@ public class Pickaxe_Controller : MonoBehaviour
 
         ButtonHeldCheck();
 
-        if (!hasThrownPick && !isSwingingPick)
+        if (!canThrowPickaxe && !isSwingingPickaxe)
         {
-            if (!canThrowPick)
-            {
-                animCtrl.ChangeAnimationState(animCtrl.idle);
-            }
+            animCtrl.ChangeAnimationState(animCtrl.idle);
+        }
 
+        if (!hasThrownPick && !isSwingingPickaxe)
+        {
             if (!isStuckToWall)
             {
-                if (Input.GetKeyUp(KeyCode.Mouse0) && !hasThrownPick)
+                if (Input.GetKeyUp(KeyCode.Mouse0))
                 {
-                    SwingPickaxe();
-                }
-
-                if (Input.GetKeyUp(KeyCode.Mouse0) && canThrowPick)
-                {
-                    ThrowPickaxe();
+                    if (!canThrowPickaxe)
+                    {
+                        SwingPickaxe();
+                    }
+                    else ThrowPickaxe();
                 }
 
                 if(Input.GetKey(KeyCode.Mouse1))
                 {
-                    canThrowPick = true;
+                    canThrowPickaxe = true;
                 }
 
                 if (Input.GetKeyUp(KeyCode.Mouse1))
@@ -111,13 +115,13 @@ public class Pickaxe_Controller : MonoBehaviour
             }
         } 
 
-        if(isSwingingPick || hasThrownPick)
+        if(isSwingingPickaxe || hasThrownPick)
         {
             pickaxeCollider.enabled = true;
         }
         else pickaxeCollider.enabled = false;
 
-        if (canThrowPick)
+        if (canThrowPickaxe)
         {
             PreparePickaxeThrow();
         }
@@ -141,20 +145,20 @@ public class Pickaxe_Controller : MonoBehaviour
 
                 if (throwDistance >= 20 && !hasThrownInArc)  //Starts recalling Pickaxe like a boomerang if it hasn't collided with anything over a set distance
                 {
-                    isRecallingPick = true;
+                    isRecallingPickaxe = true;
                 }
             }
 
             if(Input.GetKeyDown(KeyCode.Mouse0) ||  Input.GetKeyDown(KeyCode.Mouse1))
             {
-                if (rb.isKinematic && !isRecallingPick)
+                if (rb.isKinematic && !isRecallingPickaxe)
                 {
-                    isRecallingPick = true;
+                    isRecallingPickaxe = true;
                 }
             }
         }
 
-        if (isRecallingPick)
+        if (isRecallingPickaxe)
         {
             RecallPickaxe();
 
@@ -167,11 +171,16 @@ public class Pickaxe_Controller : MonoBehaviour
                     hasThrownInArc = false;
                 }
 
+                if (canDealDamage)
+                {
+                    canDealDamage = false;
+                }
+
                 rb.velocity = Vector3.zero;
                 rb.useGravity = false;
                 rb.isKinematic = true;
 
-                isRecallingPick = false;
+                isRecallingPickaxe = false;
                 hasThrownPick = false;
 
                 SetPickPosition();
@@ -186,10 +195,11 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             StickToWall();
 
-            if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1))
+            if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1) || !objectStuckTo)
             {
                 isStuckToWall = false;
                 playerCtrl.gravity = playerCtrl.currentGravity;
+                objectStuckTo = null;
             }
         }
     }
@@ -211,7 +221,7 @@ public class Pickaxe_Controller : MonoBehaviour
             if (Time.timeSinceLevelLoad - buttonHeldTime > minButtonHold)//Button is considered "held" if it is actually held down.
             {
                 buttonHeld = true;
-                canThrowPick = true;
+                canThrowPickaxe = true;
             }
         }
     } //Checks if button is being held down or pressed for distinct actions
@@ -236,9 +246,10 @@ public class Pickaxe_Controller : MonoBehaviour
     void SwingPickaxe()
     {
         //Debug.Log("Swing Pickaxe");
-        isSwingingPick = true;
+        isSwingingPickaxe = true;
+        canDealDamage = true;
 
-        if(playerCtrl.isFacingRight)
+        if(playerCtrl.isFacingRight)  //Sets animation to swing Pickaxe
         {
             animCtrl.ChangeAnimationState(animCtrl.SwingPick_R);
         }
@@ -246,7 +257,7 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             animCtrl.ChangeAnimationState(animCtrl.SwingPick_L);
         }
-    } //Sets animation to swing Pickaxe
+    } 
 
     void PreparePickaxeThrow() //Sets animation to show Pickaxe is ready to be thrown
     {
@@ -262,6 +273,10 @@ public class Pickaxe_Controller : MonoBehaviour
 
     void ThrowPickaxe()
     {
+        hasThrownPick = true;
+        canThrowPickaxe = false;
+        canDealDamage = true;
+
         rb.isKinematic = false;
         transform.parent = null;
         
@@ -274,8 +289,6 @@ public class Pickaxe_Controller : MonoBehaviour
             rb.AddForce(-playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
 
-        hasThrownPick = true;
-        canThrowPick = false;
     } 
 
     Vector3 CalculateArcVelocity()
@@ -312,7 +325,8 @@ public class Pickaxe_Controller : MonoBehaviour
 
         hasThrownInArc = true;
         hasThrownPick = true;
-        canThrowPick = false;
+        canThrowPickaxe = false;
+        canDealDamage = true;
     }
 
     void RecallPickaxe()  //Recalls Pickaxe to Players current position
@@ -375,15 +389,16 @@ public class Pickaxe_Controller : MonoBehaviour
 
                 if (hasThrownInArc)
                 {
-                    isRecallingPick = true;
+                    isRecallingPickaxe = true;
                 }
             }
         }
 
-        if (isSwingingPick && !playerCtrl.charCtrl.isGrounded)
+        if (isSwingingPickaxe && !playerCtrl.charCtrl.isGrounded)
         {
-            if (!other.gameObject.CompareTag("Player"))
+            if (!other.CompareTag("Player") || !other.CompareTag("Switch") && other.gameObject.activeInHierarchy)
             {
+                objectStuckTo = other.gameObject;
                 playerCtrl.currentGravity = playerCtrl.gravity;
                 isStuckToWall = true;
             }
@@ -391,21 +406,27 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
         {
+            Debug.Log("Damage Object");
+
             Destructible_Health dest_Health = other.GetComponent<Destructible_Health>();
 
             if (dest_Health != null)  //Will recall Pickaxe after delaing damage to Destructible_Health object
             {
-                if (isSwingingPick || hasThrownPick && !hasThrownInArc)
+                if (canDealDamage)
                 {
                     dest_Health.health--;
+                    
+                    if(hasThrownInArc)
+                    {
+                        canDealDamage = false;
+                    }
                 }
 
                 if (hasThrownPick)
                 {
-                    isRecallingPick = true;
+                    isRecallingPickaxe = true;
                 }
             }
-
         }
 
         if (other.CompareTag("Switch"))
@@ -414,7 +435,10 @@ public class Pickaxe_Controller : MonoBehaviour
 
             Interactivate_Element_Activation interact = other.gameObject.GetComponent<Interactivate_Element_Activation>();
 
-            interact.isActivated = true;
+            if (interact != null)
+            {
+                interact.isActivated = true;
+            }
         }
     }
 }

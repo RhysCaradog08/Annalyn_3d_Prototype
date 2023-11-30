@@ -42,6 +42,7 @@ public class Animation_Controller : MonoBehaviour
 
     public void ResetPickSwing()
     {
-        pickCtrl.isSwingingPick = false;
+        pickCtrl.isSwingingPickaxe = false;
+        pickCtrl.canDealDamage = false;
     }
 }
