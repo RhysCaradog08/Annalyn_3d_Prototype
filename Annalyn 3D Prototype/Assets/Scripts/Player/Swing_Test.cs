@@ -5,7 +5,7 @@ using UnityEngine;
 public class Swing_Test : MonoBehaviour
 {
     public GameObject cube;
-    public Transform swingObject, swingPivot;
+    public Transform swingObject;
     [SerializeField] Vector3 swingOffset;
     [SerializeField] float swingSpeed, swingAngle;
     [SerializeField] bool isSwingingOnObject;
@@ -26,19 +26,18 @@ public class Swing_Test : MonoBehaviour
 
         if (isSwingingOnObject)
         {
-            swingPivot.position = swingObject.position;
-            cube.transform.parent = swingPivot;
+            transform.position = swingObject.position;
+            cube.transform.parent = transform;
             cube.transform.localPosition = swingOffset;
 
             float angle = swingAngle * Mathf.Sin(Time.time * swingSpeed);
-            swingPivot.localRotation = Quaternion.Euler(0, 0, angle);
+            transform.localRotation = Quaternion.Euler(0, 0, angle);
         }
         else
         {
-            swingPivot.position = Vector3.zero;
-            swingPivot.localRotation = Quaternion.Euler(Vector3.zero);
+            transform.position = Vector3.zero;
+            transform.localRotation = Quaternion.Euler(Vector3.zero);
             cube.transform.localPosition = Vector3.zero;
-            //cube.transform.localRotation  = Quaternion.Euler(Vector3.zero);
             cube.transform.parent = null;
         }
     }

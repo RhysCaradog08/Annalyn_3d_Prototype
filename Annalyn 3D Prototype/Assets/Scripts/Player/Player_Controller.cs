@@ -48,6 +48,8 @@ public class Player_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        transform.localScale = Vector3.one;
+
         InputCheck();
         JumpCheck();
         ApplyGravity();
