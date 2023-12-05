@@ -396,11 +396,14 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (isSwingingPickaxe && !playerCtrl.charCtrl.isGrounded)
         {
-            if (!other.CompareTag("Player") || !other.CompareTag("Switch") && other.gameObject.activeInHierarchy)
+            if (!other.CompareTag("Player") && !other.CompareTag("Switch"))
             {
-                objectStuckTo = other.gameObject;
-                playerCtrl.currentGravity = playerCtrl.gravity;
-                isStuckToWall = true;
+                if (other.gameObject.activeInHierarchy)
+                {
+                    objectStuckTo = other.gameObject;
+                    playerCtrl.currentGravity = playerCtrl.gravity;
+                    isStuckToWall = true;
+                }
             }
         }
 
