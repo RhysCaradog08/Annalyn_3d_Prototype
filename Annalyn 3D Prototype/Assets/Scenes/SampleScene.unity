@@ -1553,6 +1553,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Plunger
       objectReference: {fileID: 0}
+    - target: {fileID: 578926618922246093, guid: 25849320396762444bcccdb1486ead59, type: 3}
+      propertyPath: m_TagString
+      value: Interactive
+      objectReference: {fileID: 0}
     - target: {fileID: 965703520228185955, guid: 25849320396762444bcccdb1486ead59, type: 3}
       propertyPath: m_TagString
       value: Untagged
@@ -2089,6 +2093,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Swing Object
       objectReference: {fileID: 0}
+    - target: {fileID: 701950653586286139, guid: 2fac084f13d77c34e8d17859fc88fc36, type: 3}
+      propertyPath: m_TagString
+      value: Swing On
+      objectReference: {fileID: 0}
     - target: {fileID: 1805669461354966229, guid: 2fac084f13d77c34e8d17859fc88fc36, type: 3}
       propertyPath: m_LocalScale.y
       value: 4
@@ -2107,7 +2115,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2756820832464772073, guid: 2fac084f13d77c34e8d17859fc88fc36, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 10
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2756820832464772073, guid: 2fac084f13d77c34e8d17859fc88fc36, type: 3}
       propertyPath: m_LocalPosition.z
