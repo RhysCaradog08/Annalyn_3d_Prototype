@@ -39,10 +39,14 @@ public class Pickaxe_Controller : MonoBehaviour
     [SerializeField] float recallDist;
     [SerializeField] bool isRecallingPickaxe;
 
-    [Header("Stick to Wall")]
-    [SerializeField] GameObject objectStuckTo;
+    [Header("Stick to Surface")]
+    [SerializeField] GameObject surfaceStuckTo;
     public float currentGravity;
-    public bool isStuckToWall;
+    public bool isStuckToSurface;
+
+    [Header("Swing On Object")]
+    [SerializeField] Transform swingPivot;
+    [SerializeField] bool isSwingingOnObject;
 
     // Start is called before the first frame update
     void Start()
@@ -72,9 +76,13 @@ public class Pickaxe_Controller : MonoBehaviour
         //Recall
         isRecallingPickaxe = false;
 
-        //Stick to Wall
-        objectStuckTo = null;
-        isStuckToWall = false;
+        //Stick to Surface
+        surfaceStuckTo = null;
+        isStuckToSurface = false;
+
+        //Swinging on Object
+        swingPivot = null;
+        isSwingingOnObject = false;
     }
 
     // Update is called once per frame
@@ -92,7 +100,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (!hasThrownPick && !isSwingingPickaxe)
         {
-            if (!isStuckToWall)
+            if (!isStuckToSurface)
             {
                 if (Input.GetKeyUp(KeyCode.Mouse0))
                 {
@@ -191,16 +199,21 @@ public class Pickaxe_Controller : MonoBehaviour
 
         }
 
-        if (isStuckToWall)
+        if (isStuckToSurface)
         {
             StickToWall();
 
-            if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1) || !objectStuckTo)
+            if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1) || !surfaceStuckTo)
             {
-                isStuckToWall = false;
+                isStuckToSurface = false;
                 playerCtrl.gravity = playerCtrl.currentGravity;
-                objectStuckTo = null;
+                surfaceStuckTo = null;
             }
+        }
+
+        if (isSwingingOnObject)
+        {
+            StartCoroutine(SwingOnObject());
         }
     }
 
@@ -359,6 +372,19 @@ public class Pickaxe_Controller : MonoBehaviour
         else transform.rotation = Quaternion.Euler(0, 0, 70);
     }
 
+    IEnumerator SwingOnObject()
+    {
+        float timer = 0;
+        while (true)
+        {
+            float angle = Mathf.Sin(timer) * 70;
+            swingPivot.rotation = Quaternion.AngleAxis(angle, swingPivot.forward);
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         //Debug.Log(other.name);
@@ -396,14 +422,24 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (isSwingingPickaxe && !playerCtrl.charCtrl.isGrounded)
         {
-            if (!other.CompareTag("Player") && !other.CompareTag("Switch"))
+            if (!other.CompareTag("Player") && !other.CompareTag("Switch"))  //Allows player to stick to surface as long as it's active in the heirachy
             {
                 if (other.gameObject.activeInHierarchy)
                 {
-                    objectStuckTo = other.gameObject;
+                    surfaceStuckTo = other.gameObject;
                     playerCtrl.currentGravity = playerCtrl.gravity;
-                    isStuckToWall = true;
+                    isStuckToSurface = true;
                 }
+            }
+
+            if (other.CompareTag("Swing On"))  //Allows player to connect with and swing from a designated "Swing Object"
+            {
+                playerCtrl.currentGravity = playerCtrl.gravity;
+                playerCtrl.gravity = 0;
+
+                swingPivot = other.gameObject.transform;
+                playerCtrl.transform.parent = swingPivot;
+                isSwingingOnObject = true;
             }
         }
 
@@ -432,7 +468,7 @@ public class Pickaxe_Controller : MonoBehaviour
             }
         }
 
-        if (other.CompareTag("Switch"))
+        if (other.CompareTag("Interactive"))  //Will activate an interactive element of the game world
         {
             Debug.Log(other.name);
 

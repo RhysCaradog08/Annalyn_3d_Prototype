@@ -54,7 +54,7 @@ public class Player_Controller : MonoBehaviour
 
         //Debug.Log("Is Grounded " + cc.isGrounded);
         
-        if (pickCtrl.isStuckToWall)
+        if (pickCtrl.isStuckToSurface)
         {
             canMove = false;
         }
@@ -98,7 +98,7 @@ public class Player_Controller : MonoBehaviour
 
     void JumpCheck()
     {
-        if (charCtrl.isGrounded || pickCtrl.isStuckToWall)  //canJumpTime allows for "Coyote Time" jumps to be performed
+        if (charCtrl.isGrounded || pickCtrl.isStuckToSurface)  //canJumpTime allows for "Coyote Time" jumps to be performed
         {
             canJumpTime = 0.5f;
         }
@@ -113,9 +113,9 @@ public class Player_Controller : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space) && canPressSpace)
             {
-                if(pickCtrl.isStuckToWall)
+                if(pickCtrl.isStuckToSurface)
                 {
-                    pickCtrl.isStuckToWall = false;
+                    pickCtrl.isStuckToSurface = false;
                     gravity = currentGravity;
                 }
                 //Debug.Log("Jump!");
