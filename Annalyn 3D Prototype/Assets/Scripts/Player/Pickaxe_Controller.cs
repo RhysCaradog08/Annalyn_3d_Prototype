@@ -41,12 +41,13 @@ public class Pickaxe_Controller : MonoBehaviour
 
     [Header("Stick to Surface")]
     [SerializeField] GameObject surfaceStuckTo;
-    public float currentGravity;
     public bool isStuckToSurface;
 
     [Header("Swing On Object")]
-    [SerializeField] Transform swingPivot;
-    [SerializeField] bool isSwingingOnObject;
+    public Transform swingPivot;
+    [SerializeField] Vector3 swingOffset;
+    [SerializeField] float swingSpeed;
+    public bool isSwingingOnObject;
 
     // Start is called before the first frame update
     void Start()
@@ -81,7 +82,6 @@ public class Pickaxe_Controller : MonoBehaviour
         isStuckToSurface = false;
 
         //Swinging on Object
-        swingPivot = null;
         isSwingingOnObject = false;
     }
 
@@ -102,9 +102,9 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             if (!isStuckToSurface)
             {
-                if (Input.GetKeyUp(KeyCode.Mouse0))
+                if (Input.GetKeyUp(KeyCode.Mouse0) && !isSwingingOnObject)
                 {
-                    if (!canThrowPickaxe)
+                    if (!canThrowPickaxe )
                     {
                         SwingPickaxe();
                     }
@@ -213,7 +213,12 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (isSwingingOnObject)
         {
-            StartCoroutine(SwingOnObject());
+            SwingOnObject();
+
+            if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.Space))
+            {
+                StopSwingingOnObject();
+            }
         }
     }
 
@@ -372,17 +377,26 @@ public class Pickaxe_Controller : MonoBehaviour
         else transform.rotation = Quaternion.Euler(0, 0, 70);
     }
 
-    IEnumerator SwingOnObject()
+    void SwingOnObject()
     {
-        float timer = 0;
-        while (true)
-        {
-            float angle = Mathf.Sin(timer) * 70;
-            swingPivot.rotation = Quaternion.AngleAxis(angle, swingPivot.forward);
+        playerCtrl.gravity = 0;
+        playerCtrl.velocity = Vector3.zero;
+        playerCtrl.transform.localPosition = swingOffset;
 
-            timer += Time.deltaTime;
-            yield return null;
-        }
+        float angle = 80 * Mathf.Sin(Time.time * swingSpeed);
+        swingPivot.localRotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    void StopSwingingOnObject()
+    {
+        isSwingingOnObject = false;
+
+        playerCtrl.transform.parent = null;
+        playerCtrl.gravity = playerCtrl.currentGravity;
+        playerCtrl.transform.rotation = Quaternion.Euler(Vector3.zero);
+
+        swingPivot.parent = this.transform;
+        swingPivot.localRotation = Quaternion.Euler(Vector3.zero);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -422,7 +436,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (isSwingingPickaxe && !playerCtrl.charCtrl.isGrounded)
         {
-            if (!other.CompareTag("Player") && !other.CompareTag("Switch"))  //Allows player to stick to surface as long as it's active in the heirachy
+            if (!other.CompareTag("Player") && !other.CompareTag("Interactive") && !other.CompareTag("Swing On"))  //Allows player to stick to surface as long as it's active in the heirachy
             {
                 if (other.gameObject.activeInHierarchy)
                 {
@@ -432,13 +446,14 @@ public class Pickaxe_Controller : MonoBehaviour
                 }
             }
 
-            if (other.CompareTag("Swing On"))  //Allows player to connect with and swing from a designated "Swing Object"
+            if (other.CompareTag("Swing On"))
             {
+                swingPivot.parent = null;
+                swingPivot.position = other.transform.position;
+                
                 playerCtrl.currentGravity = playerCtrl.gravity;
-                playerCtrl.gravity = 0;
-
-                swingPivot = other.gameObject.transform;
                 playerCtrl.transform.parent = swingPivot;
+
                 isSwingingOnObject = true;
             }
         }
