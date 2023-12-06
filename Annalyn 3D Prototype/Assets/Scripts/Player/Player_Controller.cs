@@ -55,7 +55,7 @@ public class Player_Controller : MonoBehaviour
         ApplyGravity();
 
         //Debug.Log("Is Grounded " + cc.isGrounded);
-        
+
         if (pickCtrl.isStuckToSurface || pickCtrl.isSwingingOnObject)
         {
             canMove = false;
@@ -64,7 +64,7 @@ public class Player_Controller : MonoBehaviour
 
         if (canMove)
         {
-            if(moveDir.magnitude > Mathf.Epsilon)
+            if (moveDir.magnitude > Mathf.Epsilon)
             {
                 charCtrl.Move(moveDir * moveSpeed * Time.deltaTime);
             }
@@ -79,9 +79,9 @@ public class Player_Controller : MonoBehaviour
                 //Debug.Log("Moving Left");
                 FlipSprite();
             }
-        }
 
-        charCtrl.Move(velocity * Time.deltaTime);
+            charCtrl.Move(velocity * Time.deltaTime);
+        }
 
         speed = moveSpeed;
     }

@@ -364,9 +364,6 @@ public class Pickaxe_Controller : MonoBehaviour
     void StickToWall()
     {
         //Debug.Log("Stick to Wall");
-        playerCtrl.gravity = 0;
-        playerCtrl.velocity = Vector3.zero;
-
         Vector3 currentPlayerPosition = playerCtrl.transform.position;
         playerCtrl.transform.position = currentPlayerPosition;
 
@@ -377,26 +374,36 @@ public class Pickaxe_Controller : MonoBehaviour
         else transform.rotation = Quaternion.Euler(0, 0, 70);
     }
 
-    void SwingOnObject()
+    void SwingOnObject()  //Swing player back and forth around a pivot
     {
-        playerCtrl.gravity = 0;
-        playerCtrl.velocity = Vector3.zero;
         playerCtrl.transform.localPosition = swingOffset;
+
+        print("Player Position: " + playerCtrl.transform.position);
+        print("Player Local Position: " + playerCtrl.transform.localPosition);
 
         float angle = 80 * Mathf.Sin(Time.time * swingSpeed);
         swingPivot.localRotation = Quaternion.Euler(0, 0, angle);
     }
 
-    void StopSwingingOnObject()
+    void StopSwingingOnObject()  //Stops player from swinging and resets all parents and rotations
     {
         isSwingingOnObject = false;
 
         playerCtrl.transform.parent = null;
-        playerCtrl.gravity = playerCtrl.currentGravity;
         playerCtrl.transform.rotation = Quaternion.Euler(Vector3.zero);
+        playerCtrl.gravity = playerCtrl.currentGravity;
+
+        //playerCtrl.enabled = true;
 
         swingPivot.parent = this.transform;
         swingPivot.localRotation = Quaternion.Euler(Vector3.zero);
+    }
+
+    void StopPlayerGravity()
+    {
+        playerCtrl.currentGravity = playerCtrl.gravity;
+        playerCtrl.gravity = 0;
+        playerCtrl.velocity = Vector3.zero;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -440,19 +447,21 @@ public class Pickaxe_Controller : MonoBehaviour
             {
                 if (other.gameObject.activeInHierarchy)
                 {
+                    StopPlayerGravity();
                     surfaceStuckTo = other.gameObject;
-                    playerCtrl.currentGravity = playerCtrl.gravity;
                     isStuckToSurface = true;
                 }
             }
 
             if (other.CompareTag("Swing On"))
             {
+                StopPlayerGravity();
+
                 swingPivot.parent = null;
                 swingPivot.position = other.transform.position;
-                
-                playerCtrl.currentGravity = playerCtrl.gravity;
+                //playerCtrl.enabled = false;
                 playerCtrl.transform.parent = swingPivot;
+                playerCtrl.transform.localPosition = swingOffset;
 
                 isSwingingOnObject = true;
             }
