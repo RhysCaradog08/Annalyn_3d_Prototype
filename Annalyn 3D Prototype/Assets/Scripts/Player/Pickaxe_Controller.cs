@@ -469,6 +469,8 @@ public class Pickaxe_Controller : MonoBehaviour
         canThrowPickaxe = false;
         isHoldingObject = false;
         canPickUpObject = true;
+
+        throwableRb = null;
     }
 
     private void OnTriggerEnter(Collider other)
