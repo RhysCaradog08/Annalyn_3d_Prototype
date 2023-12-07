@@ -50,7 +50,7 @@ public class Pickaxe_Controller : MonoBehaviour
     public bool isSwingingOnObject;
 
     [Header("Throw Object")]
-    [SerializeField] Rigidbody throwableRigid;
+    [SerializeField] Rigidbody throwableRb;
     public Transform holdPosition;
     [SerializeField] bool canPickUpObject, isHoldingObject;
 
@@ -134,7 +134,11 @@ public class Pickaxe_Controller : MonoBehaviour
 
                 if (Input.GetKeyUp(KeyCode.Mouse1))
                 {
-                    ThrowPickaxeInArc();
+                    if (isHoldingObject)
+                    {
+                        ThrowRigibodyObjectInArc();
+                    }
+                    else ThrowPickaxeInArc();
                 }
             }
         } 
@@ -423,13 +427,13 @@ public class Pickaxe_Controller : MonoBehaviour
 
     void PickUpRigidbodyObject() //Pick up and attach rigibody object to pickaxe
     {
-        if(!throwableRigid.isKinematic)
+        if(!throwableRb.isKinematic)
         {
-            throwableRigid.isKinematic = true;
+            throwableRb.isKinematic = true;
         }
 
-        throwableRigid.transform.parent = holdPosition;
-        throwableRigid.transform.localPosition = Vector3.zero;
+        throwableRb.transform.parent = holdPosition;
+        throwableRb.transform.localPosition = Vector3.zero;
 
         canPickUpObject = false;
         isHoldingObject = true;
@@ -438,19 +442,19 @@ public class Pickaxe_Controller : MonoBehaviour
     void ThrowRigidbodyObject()  //Release rigidbody object and throw from pickaxe in direction the player is facing
     {
 
-        throwableRigid.isKinematic = false;
-        throwableRigid.transform.parent = null;
+        throwableRb.isKinematic = false;
+        throwableRb.transform.parent = null;
 
         if (playerCtrl.isFacingRight) //Will throw Pickaxe in direction that player is facing
         {
-            throwableRigid.AddForce(playerCtrl.transform.right * throwForce, ForceMode.Impulse);
+            throwableRb.AddForce(playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
         else if (!playerCtrl.isFacingRight)
         {
-            throwableRigid.AddForce(-playerCtrl.transform.right * throwForce, ForceMode.Impulse);
+            throwableRb.AddForce(-playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
 
-        throwableRigid = null;
+        throwableRb = null;
         canPickUpObject = true;
         isHoldingObject = false;
         canThrowPickaxe = false;
@@ -458,7 +462,13 @@ public class Pickaxe_Controller : MonoBehaviour
 
     void ThrowRigibodyObjectInArc() //Release rigidbody object and throw from pickaxe in an arc
     {
+        throwableRb.isKinematic = false;
+        throwableRb.transform.parent = null;
+        throwableRb.velocity = CalculateArcVelocity();
 
+        canThrowPickaxe = false;
+        isHoldingObject = false;
+        canPickUpObject = true;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -524,7 +534,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
         if (other.CompareTag("Throwable") && canPickUpObject)
         {
-            throwableRigid = other.GetComponent<Rigidbody>();
+            throwableRb = other.GetComponent<Rigidbody>();
             
             PickUpRigidbodyObject();
         }
