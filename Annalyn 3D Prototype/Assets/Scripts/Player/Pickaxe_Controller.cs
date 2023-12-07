@@ -49,6 +49,11 @@ public class Pickaxe_Controller : MonoBehaviour
     [SerializeField] float swingSpeed;
     public bool isSwingingOnObject;
 
+    [Header("Throw Object")]
+    [SerializeField] Rigidbody throwableRigid;
+    public Transform holdPosition;
+    [SerializeField] bool canPickUpObject, isHoldingObject;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -83,6 +88,10 @@ public class Pickaxe_Controller : MonoBehaviour
 
         //Swinging on Object
         isSwingingOnObject = false;
+
+        //Throw Object
+        canPickUpObject = true;
+        isHoldingObject = false;
     }
 
     // Update is called once per frame
@@ -104,11 +113,18 @@ public class Pickaxe_Controller : MonoBehaviour
             {
                 if (Input.GetKeyUp(KeyCode.Mouse0) && !isSwingingOnObject)
                 {
-                    if (!canThrowPickaxe )
+                    if (!canThrowPickaxe)
                     {
                         SwingPickaxe();
+                    }                    
+                    else if (canThrowPickaxe)
+                    {
+                        if (isHoldingObject)
+                        {
+                            ThrowRigidbodyObject();
+                        }
+                        else ThrowPickaxe();
                     }
-                    else ThrowPickaxe();
                 }
 
                 if(Input.GetKey(KeyCode.Mouse1))
@@ -118,7 +134,7 @@ public class Pickaxe_Controller : MonoBehaviour
 
                 if (Input.GetKeyUp(KeyCode.Mouse1))
                 {
-                    ArcThrow();
+                    ThrowPickaxeInArc();
                 }
             }
         } 
@@ -306,7 +322,6 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             rb.AddForce(-playerCtrl.transform.right * throwForce, ForceMode.Impulse);
         }
-
     } 
 
     Vector3 CalculateArcVelocity()
@@ -333,7 +348,7 @@ public class Pickaxe_Controller : MonoBehaviour
         return velocityX + velocityY;
     }
 
-    void ArcThrow() //Throws Pickaxe in an Arc to reach and clear higher targets and obstacles
+    void ThrowPickaxeInArc() //Throws Pickaxe in an Arc to reach and clear higher targets and obstacles
     {
         Physics.gravity = Vector3.up * gravity;
         rb.useGravity = true;
@@ -406,6 +421,46 @@ public class Pickaxe_Controller : MonoBehaviour
         playerCtrl.velocity = Vector3.zero;
     }
 
+    void PickUpRigidbodyObject() //Pick up and attach rigibody object to pickaxe
+    {
+        if(!throwableRigid.isKinematic)
+        {
+            throwableRigid.isKinematic = true;
+        }
+
+        throwableRigid.transform.parent = holdPosition;
+        throwableRigid.transform.localPosition = Vector3.zero;
+
+        canPickUpObject = false;
+        isHoldingObject = true;
+    }
+
+    void ThrowRigidbodyObject()  //Release rigidbody object and throw from pickaxe in direction the player is facing
+    {
+
+        throwableRigid.isKinematic = false;
+        throwableRigid.transform.parent = null;
+
+        if (playerCtrl.isFacingRight) //Will throw Pickaxe in direction that player is facing
+        {
+            throwableRigid.AddForce(playerCtrl.transform.right * throwForce, ForceMode.Impulse);
+        }
+        else if (!playerCtrl.isFacingRight)
+        {
+            throwableRigid.AddForce(-playerCtrl.transform.right * throwForce, ForceMode.Impulse);
+        }
+
+        throwableRigid = null;
+        canPickUpObject = true;
+        isHoldingObject = false;
+        canThrowPickaxe = false;
+    }
+
+    void ThrowRigibodyObjectInArc() //Release rigidbody object and throw from pickaxe in an arc
+    {
+
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         //Debug.Log(other.name);
@@ -414,7 +469,7 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             if (!other.gameObject.CompareTag("Player") && !other.GetComponent<Destructible_Health>()) //Pick will stick in object collided with
             {
-                if (!rb.isKinematic)
+                if (!rb.isKinematic && !isHoldingObject)
                 {
                     rb.isKinematic = true;
 
@@ -434,7 +489,7 @@ public class Pickaxe_Controller : MonoBehaviour
                     }
                 }
 
-                if (hasThrownInArc)
+                if (hasThrownInArc || isHoldingObject)
                 {
                     isRecallingPickaxe = true;
                 }
@@ -445,7 +500,7 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             if (!other.CompareTag("Player") && !other.CompareTag("Interactive") && !other.CompareTag("Swing On"))  //Allows player to stick to surface as long as it's active in the heirachy
             {
-                if (other.gameObject.activeInHierarchy)
+                if (other.gameObject.activeInHierarchy && !isHoldingObject)
                 {
                     StopPlayerGravity();
                     surfaceStuckTo = other.gameObject;
@@ -453,18 +508,25 @@ public class Pickaxe_Controller : MonoBehaviour
                 }
             }
 
-            if (other.CompareTag("Swing On"))
+            if (other.CompareTag("Swing On") && !isHoldingObject)
             {
                 StopPlayerGravity();
 
                 swingPivot.parent = null;
                 swingPivot.position = other.transform.position;
-                //playerCtrl.enabled = false;
+
                 playerCtrl.transform.parent = swingPivot;
                 playerCtrl.transform.localPosition = swingOffset;
 
                 isSwingingOnObject = true;
             }
+        }
+
+        if (other.CompareTag("Throwable") && canPickUpObject)
+        {
+            throwableRigid = other.GetComponent<Rigidbody>();
+            
+            PickUpRigidbodyObject();
         }
 
         if (other.GetComponent<Destructible_Health>() != null) //Damages destructible objects with Destructible_Health script attached
