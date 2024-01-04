@@ -52,7 +52,6 @@ public class Player_Controller : MonoBehaviour
 
         InputCheck();
         JumpCheck();
-        ApplyGravity();
 
         //Debug.Log("Is Grounded " + cc.isGrounded);
 
@@ -64,6 +63,8 @@ public class Player_Controller : MonoBehaviour
 
         if (canMove)
         {
+            ApplyGravity();
+
             if (moveDir.magnitude > Mathf.Epsilon)
             {
                 charCtrl.Move(moveDir * moveSpeed * Time.deltaTime);
@@ -146,6 +147,8 @@ public class Player_Controller : MonoBehaviour
 
     void ApplyGravity()  //Applies relevant gravity modifier to player dependent on current situation
     {
+        //Debug.Log("Applying Gravity");
+
         if (charCtrl.isGrounded && velocity.y < 0)  //Keeps player grounded
         {
             velocity.y = -2;

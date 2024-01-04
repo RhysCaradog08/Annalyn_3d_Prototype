@@ -223,10 +223,10 @@ public class Pickaxe_Controller : MonoBehaviour
         {
             StickToWall();
 
-            if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1) || !surfaceStuckTo)
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyUp(KeyCode.Mouse0) || Input.GetKeyUp(KeyCode.Mouse1) || !surfaceStuckTo)
             {
+                //Debug.Log("Stop Sticking to Surface");
                 isStuckToSurface = false;
-                playerCtrl.gravity = playerCtrl.currentGravity;
                 surfaceStuckTo = null;
             }
         }
@@ -397,8 +397,8 @@ public class Pickaxe_Controller : MonoBehaviour
     {
         playerCtrl.transform.localPosition = swingOffset;
 
-        print("Player Position: " + playerCtrl.transform.position);
-        print("Player Local Position: " + playerCtrl.transform.localPosition);
+        /*print("Player Position: " + playerCtrl.transform.position);
+        print("Player Local Position: " + playerCtrl.transform.localPosition);*/
 
         float angle = 80 * Mathf.Sin(Time.time * swingSpeed);
         swingPivot.localRotation = Quaternion.Euler(0, 0, angle);
@@ -410,19 +410,9 @@ public class Pickaxe_Controller : MonoBehaviour
 
         playerCtrl.transform.parent = null;
         playerCtrl.transform.rotation = Quaternion.Euler(Vector3.zero);
-        playerCtrl.gravity = playerCtrl.currentGravity;
-
-        //playerCtrl.enabled = true;
 
         swingPivot.parent = this.transform;
         swingPivot.localRotation = Quaternion.Euler(Vector3.zero);
-    }
-
-    void StopPlayerGravity()
-    {
-        playerCtrl.currentGravity = playerCtrl.gravity;
-        playerCtrl.gravity = 0;
-        playerCtrl.velocity = Vector3.zero;
     }
 
     void PickUpRigidbodyObject() //Pick up and attach rigibody object to pickaxe
@@ -514,7 +504,6 @@ public class Pickaxe_Controller : MonoBehaviour
             {
                 if (other.gameObject.activeInHierarchy && !isHoldingObject)
                 {
-                    StopPlayerGravity();
                     surfaceStuckTo = other.gameObject;
                     isStuckToSurface = true;
                 }
@@ -522,8 +511,6 @@ public class Pickaxe_Controller : MonoBehaviour
 
             if (other.CompareTag("Swing On") && !isHoldingObject)
             {
-                StopPlayerGravity();
-
                 swingPivot.parent = null;
                 swingPivot.position = other.transform.position;
 
