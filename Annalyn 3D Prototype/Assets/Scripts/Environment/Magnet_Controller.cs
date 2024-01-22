@@ -4,16 +4,18 @@ using UnityEngine;
 
 public class Magnet_Controller : MonoBehaviour
 {
-    Player_Controller playerCtrl;
-
     [SerializeField] Rigidbody lodestoneRB;
     [SerializeField] float magnetStrength, distance;
     public bool isOn, hasPlayer;
 
     private void Start()
     {
-        playerCtrl = GetComponent<Player_Controller>();
         hasPlayer = false;
+    }
+
+    private void Update()
+    {
+        
     }
 
     private void OnTriggerEnter(Collider other)
@@ -39,9 +41,9 @@ public class Magnet_Controller : MonoBehaviour
             Debug.Log("Lodestone in Magnet");           
 
             distance = Vector3.Distance(other.transform.position, transform.position);
-            
+
             Vector3 magnetDirection = transform.position - lodestoneRB.transform.position;
-            
+
             if (distance > 0)
             {
                 if (!lodestoneRB.transform.parent)
