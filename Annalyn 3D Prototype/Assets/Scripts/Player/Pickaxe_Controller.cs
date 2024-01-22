@@ -521,7 +521,7 @@ public class Pickaxe_Controller : MonoBehaviour
             }
         }
 
-        if (other.CompareTag("Throwable") && canPickUpObject)
+        if ((other.CompareTag("Throwable") || other.CompareTag("Lodestone") && canPickUpObject))
         {
             throwableRb = other.GetComponent<Rigidbody>();
             

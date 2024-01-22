@@ -25,6 +25,8 @@ public class Player_Controller : MonoBehaviour
     [SerializeField] float canJumpTime;
     public bool hasJumped, canPressSpace;
 
+    public bool isMagnetised;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -43,6 +45,8 @@ public class Player_Controller : MonoBehaviour
         jumpSpeed = Mathf.Abs(gravity) * timeToJumpApex;
         hasJumped = false;
         canPressSpace = true;
+
+        isMagnetised = false;
     }
 
     // Update is called once per frame
@@ -63,7 +67,10 @@ public class Player_Controller : MonoBehaviour
 
         if (canMove)
         {
-            ApplyGravity();
+            if(!isMagnetised)
+            {
+                ApplyGravity();
+            }
 
             if (moveDir.magnitude > Mathf.Epsilon)
             {
